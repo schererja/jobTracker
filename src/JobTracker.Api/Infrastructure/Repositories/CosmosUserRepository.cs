@@ -1,5 +1,4 @@
 using Microsoft.Azure.Cosmos;
-using JobTracker.Shared.Models;
 using User = JobTracker.Shared.Models.User;
 
 namespace JobTracker.Api.Infrastructure.Repositories;
@@ -23,15 +22,17 @@ public class CosmosUserRepository : IUserRepository
     if (existing != null)
       return existing;
 
+    var userId = Guid.NewGuid().ToString();
     var newUser = new User
     {
-      UserId = Guid.NewGuid(),
+      Id = userId,
+      UserId = userId,
       Email = email,
       CreatedAt = DateTime.UtcNow,
       Plan = "free"
     };
 
-    var response = await _container.CreateItemAsync(newUser, new PartitionKey(newUser.UserId.ToString()), cancellationToken: ct);
+    var response = await _container.CreateItemAsync(newUser, new PartitionKey(userId), cancellationToken: ct);
     return response.Resource;
   }
 
@@ -59,6 +60,12 @@ public class CosmosUserRepository : IUserRepository
 
     var batch = await query.ReadNextAsync(ct);
     return batch.FirstOrDefault();
+  }
+
+  public async Task<User> CreateAsync(User user, CancellationToken ct = default)
+  {
+    var response = await _container.CreateItemAsync(user, new PartitionKey(user.UserId), cancellationToken: ct);
+    return response.Resource;
   }
 
   public async Task<User> UpdateAsync(User user, CancellationToken ct = default)

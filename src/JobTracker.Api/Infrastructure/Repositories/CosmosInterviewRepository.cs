@@ -19,6 +19,7 @@ public class CosmosInterviewRepository : IInterviewRepository
   {
     interview.CreatedAt = DateTime.UtcNow;
     interview.UpdatedAt = DateTime.UtcNow;
+    interview.id = interview.InterviewId.ToString();
 
     var response = await _container.CreateItemAsync(interview, cancellationToken: ct);
     return response.Resource;
@@ -67,6 +68,7 @@ public class CosmosInterviewRepository : IInterviewRepository
   public async Task<InterviewEvent> UpdateAsync(InterviewEvent interview, CancellationToken ct = default)
   {
     interview.UpdatedAt = DateTime.UtcNow;
+    interview.id = interview.InterviewId.ToString();
 
     var response = await _container.ReplaceItemAsync(
         interview,

@@ -36,7 +36,7 @@ public class AttachmentFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid application ID");
@@ -80,7 +80,7 @@ public class AttachmentFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid application ID");
@@ -126,7 +126,7 @@ public class AttachmentFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid application ID");
@@ -165,7 +165,7 @@ public class AttachmentFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId) || !Guid.TryParse(attachmentId, out var attId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid ID format");
@@ -202,7 +202,7 @@ public class AttachmentFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId) || !Guid.TryParse(attachmentId, out var attId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid ID format");

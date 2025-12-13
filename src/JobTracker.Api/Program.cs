@@ -18,11 +18,23 @@ builder.Services
 // Add HttpContextAccessor for identity service
 builder.Services.AddHttpContextAccessor();
 
-// Add Identity Service
-builder.Services.AddScoped<IIdentityService, HttpContextIdentityService>();
+// Add JWT Token Service (needed for both dev and prod)
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-// Add Storage Service (mock for development, replace with Azure Blob Storage implementation)
-builder.Services.AddScoped<IStorageService, MockStorageService>();
+// Add Identity Service and Storage Service based on environment
+if (builder.Environment.IsDevelopment())
+{
+  // Use mock services for local development (no auth required)
+  builder.Services.AddScoped<IIdentityService, MockIdentityService>();
+  builder.Services.AddScoped<IStorageService, MockStorageService>();
+}
+else
+{
+  // Use real services for production (JWT auth required)
+  builder.Services.AddScoped<IIdentityService, JwtIdentityService>();
+  // TODO: Replace with real Azure Blob Storage service when ready
+  builder.Services.AddScoped<IStorageService, MockStorageService>();
+}
 
 // Configure Cosmos DB
 var cosmosConnectionString = builder.Configuration["CosmosDbConnectionString"]
@@ -30,7 +42,16 @@ var cosmosConnectionString = builder.Configuration["CosmosDbConnectionString"]
 var cosmosDatabaseName = builder.Configuration["CosmosDbDatabaseName"] ?? "jobtracker";
 var cosmosContainerName = builder.Configuration["CosmosDbContainerName"] ?? "items";
 
-var cosmosClient = new CosmosClient(cosmosConnectionString);
+// Configure Cosmos with System.Text.Json serializer for camelCase
+var cosmosOptions = new CosmosClientOptions
+{
+  SerializerOptions = new CosmosSerializationOptions
+  {
+    PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+  }
+};
+
+var cosmosClient = new CosmosClient(cosmosConnectionString, cosmosOptions);
 var database = cosmosClient.GetDatabase(cosmosDatabaseName);
 var container = database.GetContainer(cosmosContainerName);
 

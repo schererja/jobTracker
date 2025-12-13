@@ -32,7 +32,7 @@ public class ApplicationFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       var query = req.Url.Query;
       var statusStr = req.Query["status"];
@@ -91,16 +91,17 @@ public class ApplicationFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
       var createRequest = await req.ReadFromJsonAsync<CreateApplicationRequest>();
 
       if (createRequest == null)
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request body");
 
+      var appId = Guid.NewGuid();
       var app = new JobApplication
       {
-        ApplicationId = Guid.NewGuid(),
-        UserId = userId,
+        id = appId.ToString(),
+        userId = userId.ToString(),
         Company = createRequest.Company,
         RoleTitle = createRequest.RoleTitle,
         Location = createRequest.Location,
@@ -133,7 +134,7 @@ public class ApplicationFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid application ID");
@@ -160,7 +161,7 @@ public class ApplicationFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid application ID");
@@ -208,7 +209,7 @@ public class ApplicationFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid application ID");
@@ -226,7 +227,8 @@ public class ApplicationFunctions
   private static HttpResponseData CreateErrorResponse(HttpRequestData req, HttpStatusCode status, string message, string? details = null)
   {
     var response = req.CreateResponse(status);
-    response.Headers.Add("Content-Type", "application/json");
+    var errorBody = new { error = message, details = details };
+    response.WriteAsJsonAsync(errorBody).AsTask().Wait();
     return response;
   }
 }

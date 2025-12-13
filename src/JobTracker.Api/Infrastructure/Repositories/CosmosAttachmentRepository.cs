@@ -17,6 +17,7 @@ public class CosmosAttachmentRepository : IAttachmentRepository
 
   public async Task<Attachment> CreateAsync(Attachment attachment, CancellationToken ct = default)
   {
+    attachment.id = attachment.AttachmentId.ToString();
     var response = await _container.CreateItemAsync(attachment, cancellationToken: ct);
     return response.Resource;
   }

@@ -33,7 +33,7 @@ public class StatusFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid application ID");
@@ -58,6 +58,7 @@ public class StatusFunctions
         NewStatus = statusRequest.NewStatus,
         ChangedAt = DateTime.UtcNow
       };
+      history.id = history.HistoryId.ToString();
 
       await _historyRepo.AppendAsync(history, ct);
       var updated = await _appRepo.UpdateAsync(app, ct);
@@ -80,7 +81,7 @@ public class StatusFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid application ID");

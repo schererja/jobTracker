@@ -23,6 +23,11 @@ public interface IUserRepository
   Task<User?> GetByEmailAsync(string email, CancellationToken ct = default);
 
   /// <summary>
+  /// Create a new user.
+  /// </summary>
+  Task<User> CreateAsync(User user, CancellationToken ct = default);
+
+  /// <summary>
   /// Update user profile.
   /// </summary>
   Task<User> UpdateAsync(User user, CancellationToken ct = default);

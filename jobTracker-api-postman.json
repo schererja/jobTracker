@@ -1,0 +1,462 @@
+{
+  "info": {
+    "_postman_id": "jobtracker-api",
+    "name": "JobTracker API - Local Testing",
+    "description": "Collection for testing jobTracker Azure Functions API locally",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ZjM3ZDc2OC0wZTQ2LTQ4ZjItOTM0NC04OTQ1ZDk4ZTAyMjIiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE3MDAwMDAwMDB9.test",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:7071/api",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "4f37d768-0e46-48f2-9344-8945d98e0222",
+      "type": "string"
+    },
+    {
+      "key": "applicationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "interviewId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "attachmentId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": ["{{base_url}}", "api"],
+              "path": ["me"]
+            },
+            "description": "Get current user profile (creates user if not exists)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "item": [
+        {
+          "name": "List Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications?pageSize=20",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications"],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "Applied",
+                  "disabled": true
+                },
+                {
+                  "key": "company",
+                  "value": "Google",
+                  "disabled": true
+                },
+                {
+                  "key": "source",
+                  "value": "LinkedIn",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all job applications with optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme Corp\",\n  \"roleTitle\": \"Senior Software Engineer\",\n  \"location\": \"San Francisco, CA\",\n  \"salaryRange\": \"$150k - $200k\",\n  \"appliedDate\": \"2025-12-11T00:00:00Z\",\n  \"status\": \"Applied\",\n  \"source\": \"LinkedIn\",\n  \"url\": \"https://example.com/job/123\",\n  \"resumeUsed\": \"resume-v2.pdf\",\n  \"notes\": \"Great company, exciting product\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications"]
+            },
+            "description": "Create a new job application"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Application",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications", "{{applicationId}}"]
+            },
+            "description": "Get details for a specific application"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Application",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Updated notes after talking to recruiter\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications", "{{applicationId}}"]
+            },
+            "description": "Update application (partial update)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Application",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications", "{{applicationId}}"]
+            },
+            "description": "Delete an application"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Status History",
+      "item": [
+        {
+          "name": "Update Application Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Interviewing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/status",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications", "{{applicationId}}", "status"]
+            },
+            "description": "Update application status and create history entry"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Status History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/status-history?pageSize=50",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications", "{{applicationId}}", "status-history"],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Get status history for an application"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Interviews",
+      "item": [
+        {
+          "name": "List Interviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/interviews?pageSize=50",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications", "{{applicationId}}", "interviews"],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "List all interviews for an application"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Interview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2025-12-15T10:00:00Z\",\n  \"interviewer\": \"John Smith\",\n  \"type\": \"PhoneScreen\",\n  \"notes\": \"Discuss experience with cloud architecture\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/interviews",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications", "{{applicationId}}", "interviews"]
+            },
+            "description": "Create a new interview event"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Interview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/interviews/{{interviewId}}",
+              "host": ["{{base_url}}", "api"],
+              "path": [
+                "applications",
+                "{{applicationId}}",
+                "interviews",
+                "{{interviewId}}"
+              ]
+            },
+            "description": "Get details for a specific interview"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Interview",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Went well, discussed project experiences\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/interviews/{{interviewId}}",
+              "host": ["{{base_url}}", "api"],
+              "path": [
+                "applications",
+                "{{applicationId}}",
+                "interviews",
+                "{{interviewId}}"
+              ]
+            },
+            "description": "Update interview details"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Interview",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/interviews/{{interviewId}}",
+              "host": ["{{base_url}}", "api"],
+              "path": [
+                "applications",
+                "{{applicationId}}",
+                "interviews",
+                "{{interviewId}}"
+              ]
+            },
+            "description": "Delete an interview event"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Attachments",
+      "item": [
+        {
+          "name": "Presign Upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileName\": \"cover-letter.pdf\",\n  \"contentType\": \"application/pdf\",\n  \"sizeBytes\": 125000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/attachments/presign-upload",
+              "host": ["{{base_url}}", "api"],
+              "path": [
+                "applications",
+                "{{applicationId}}",
+                "attachments",
+                "presign-upload"
+              ]
+            },
+            "description": "Get presigned URL for file upload"
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attachmentId\": \"{{attachmentId}}\",\n  \"fileName\": \"cover-letter.pdf\",\n  \"contentType\": \"application/pdf\",\n  \"sizeBytes\": 125000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/attachments",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications", "{{applicationId}}", "attachments"]
+            },
+            "description": "Confirm file upload after client puts to presigned URL"
+          },
+          "response": []
+        },
+        {
+          "name": "List Attachments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/attachments?pageSize=50",
+              "host": ["{{base_url}}", "api"],
+              "path": ["applications", "{{applicationId}}", "attachments"],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "List all attachments for an application"
+          },
+          "response": []
+        },
+        {
+          "name": "Presign Download",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/attachments/{{attachmentId}}/presign-download",
+              "host": ["{{base_url}}", "api"],
+              "path": [
+                "applications",
+                "{{applicationId}}",
+                "attachments",
+                "{{attachmentId}}",
+                "presign-download"
+              ]
+            },
+            "description": "Get presigned URL for file download"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Attachment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/{{applicationId}}/attachments/{{attachmentId}}",
+              "host": ["{{base_url}}", "api"],
+              "path": [
+                "applications",
+                "{{applicationId}}",
+                "attachments",
+                "{{attachmentId}}"
+              ]
+            },
+            "description": "Delete an attachment"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

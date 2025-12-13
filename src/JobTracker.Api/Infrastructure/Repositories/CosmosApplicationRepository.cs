@@ -22,7 +22,7 @@ public class CosmosApplicationRepository : IApplicationRepository
     application.CreatedAt = DateTime.UtcNow;
     application.UpdatedAt = DateTime.UtcNow;
 
-    var response = await _container.CreateItemAsync(application, new PartitionKey(application.UserId.ToString()), cancellationToken: ct);
+    var response = await _container.CreateItemAsync(application, new PartitionKey(application.userId), cancellationToken: ct);
     return response.Resource;
   }
 
@@ -54,16 +54,28 @@ public class CosmosApplicationRepository : IApplicationRepository
       string? continuationToken = null,
       CancellationToken ct = default)
   {
-    var query = _container.GetItemQueryIterator<JobApplication>(
-        BuildQueryDefinition(userId, statuses, company, source, appliedFrom, appliedTo, searchQuery),
-            requestOptions: new QueryRequestOptions { MaxItemCount = pageSize });
+    FeedIterator<JobApplication> query;
 
     if (!string.IsNullOrEmpty(continuationToken))
     {
       query = _container.GetItemQueryIterator<JobApplication>(
           BuildQueryDefinition(userId, statuses, company, source, appliedFrom, appliedTo, searchQuery),
           continuationToken: continuationToken,
-          requestOptions: new QueryRequestOptions { MaxItemCount = pageSize });
+          requestOptions: new QueryRequestOptions
+          {
+            MaxItemCount = pageSize,
+            PartitionKey = new PartitionKey(userId.ToString())
+          });
+    }
+    else
+    {
+      query = _container.GetItemQueryIterator<JobApplication>(
+          BuildQueryDefinition(userId, statuses, company, source, appliedFrom, appliedTo, searchQuery),
+          requestOptions: new QueryRequestOptions
+          {
+            MaxItemCount = pageSize,
+            PartitionKey = new PartitionKey(userId.ToString())
+          });
     }
 
     var batch = await query.ReadNextAsync(ct);
@@ -83,8 +95,8 @@ public class CosmosApplicationRepository : IApplicationRepository
 
     var response = await _container.ReplaceItemAsync(
         application,
-        application.ApplicationId.ToString(),
-        new PartitionKey(application.UserId.ToString()),
+        application.id,
+        new PartitionKey(application.userId),
         cancellationToken: ct);
     return response.Resource;
   }
@@ -117,52 +129,60 @@ public class CosmosApplicationRepository : IApplicationRepository
       DateTime? appliedTo,
       string? searchQuery)
   {
-    var query = new QueryDefinition("SELECT * FROM c WHERE c.userId = @userId");
-    query.WithParameter("@userId", userId.ToString());
+    var queryText = "SELECT * FROM c WHERE c.userId = @userId";
+
+    // Build query text
+    var parameters = new Dictionary<string, object> { ["@userId"] = userId.ToString() };
 
     if (statuses?.Length > 0)
     {
       var statusArray = string.Join(",", statuses.Select((_, i) => $"@status{i}"));
-      query = new QueryDefinition($"SELECT * FROM c WHERE c.userId = @userId AND c.status IN ({statusArray})");
-      query.WithParameter("@userId", userId.ToString());
+      queryText += $" AND c.status IN ({statusArray})";
       for (int i = 0; i < statuses.Length; i++)
       {
-        query.WithParameter($"@status{i}", statuses[i].ToString());
+        parameters[$"@status{i}"] = (int)statuses[i];
       }
     }
 
     if (!string.IsNullOrEmpty(company))
     {
-      query = new QueryDefinition($"{query.QueryText} AND CONTAINS(LOWER(c.company), @company)");
-      query.WithParameter("@company", company.ToLower());
+      queryText += " AND CONTAINS(LOWER(c.company), @company)";
+      parameters["@company"] = company.ToLower();
     }
 
     if (source.HasValue)
     {
-      query = new QueryDefinition($"{query.QueryText} AND c.source = @source");
-      query.WithParameter("@source", source.Value.ToString());
+      queryText += " AND c.source = @source";
+      parameters["@source"] = (int)source.Value;
     }
 
     if (appliedFrom.HasValue)
     {
-      query = new QueryDefinition($"{query.QueryText} AND c.appliedDate >= @appliedFrom");
-      query.WithParameter("@appliedFrom", appliedFrom.Value);
+      queryText += " AND c.appliedDate >= @appliedFrom";
+      parameters["@appliedFrom"] = appliedFrom.Value;
     }
 
     if (appliedTo.HasValue)
     {
-      query = new QueryDefinition($"{query.QueryText} AND c.appliedDate <= @appliedTo");
-      query.WithParameter("@appliedTo", appliedTo.Value);
+      queryText += " AND c.appliedDate <= @appliedTo";
+      parameters["@appliedTo"] = appliedTo.Value;
     }
 
     if (!string.IsNullOrEmpty(searchQuery))
     {
-      var searchLower = searchQuery.ToLower();
-      query = new QueryDefinition($"{query.QueryText} AND (CONTAINS(LOWER(c.company), @search) OR CONTAINS(LOWER(c.roleTitle), @search))");
-      query.WithParameter("@search", searchLower);
+      queryText += " AND (CONTAINS(LOWER(c.company), @search) OR CONTAINS(LOWER(c.roleTitle), @search))";
+      parameters["@search"] = searchQuery.ToLower();
     }
 
-    query = new QueryDefinition($"{query.QueryText} ORDER BY c.appliedDate DESC");
+    queryText += " ORDER BY c.appliedDate DESC";
+
+    // Build the query with all parameters
+    var query = new QueryDefinition(queryText);
+    foreach (var param in parameters)
+    {
+      query = query.WithParameter(param.Key, param.Value);
+    }
+
     return query;
   }
 }

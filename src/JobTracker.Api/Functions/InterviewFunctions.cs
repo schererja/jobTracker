@@ -33,7 +33,7 @@ public class InterviewFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid application ID");
@@ -71,7 +71,7 @@ public class InterviewFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid application ID");
@@ -115,7 +115,7 @@ public class InterviewFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId) || !Guid.TryParse(interviewId, out var intId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid ID format");
@@ -147,7 +147,7 @@ public class InterviewFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId) || !Guid.TryParse(interviewId, out var intId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid ID format");
@@ -194,7 +194,7 @@ public class InterviewFunctions
   {
     try
     {
-      var userId = _identity.GetUserId();
+      var userId = _identity.GetUserId(req);
 
       if (!Guid.TryParse(applicationId, out var appId) || !Guid.TryParse(interviewId, out var intId))
         return CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid ID format");
